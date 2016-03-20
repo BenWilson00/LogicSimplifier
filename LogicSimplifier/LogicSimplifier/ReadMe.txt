@@ -1,12 +1,4 @@
-========================================================================
-    CONSOLE APPLICATION : LogicSimplifier Project Overview
-========================================================================
-
-AppWizard has created this LogicSimplifier application for you.
-
-This file contains a summary of what you will find in each of the files that
-make up your LogicSimplifier application.
-
+Files:
 
 LogicSimplifier.vcxproj
     This is the main project file for VC++ projects generated using an Application Wizard.
@@ -21,8 +13,12 @@ LogicSimplifier.vcxproj.filters
     similar extensions under a specific node (for e.g. ".cpp" files are associated with the
     "Source Files" filter).
 
-LogicSimplifier.cpp
+LogicSimplifier.cpp, .h
     This is the main application source file.
+
+gate.cpp, .h
+	This is the declaration of the Logic Gate class.
+
 
 /////////////////////////////////////////////////////////////////////////////
 Other standard files:
@@ -30,11 +26,3 @@ Other standard files:
 StdAfx.h, StdAfx.cpp
     These files are used to build a precompiled header (PCH) file
     named LogicSimplifier.pch and a precompiled types file named StdAfx.obj.
-
-/////////////////////////////////////////////////////////////////////////////
-Other notes:
-
-AppWizard uses "TODO:" comments to indicate parts of the source code you
-should add to or customize.
-
-/////////////////////////////////////////////////////////////////////////////
