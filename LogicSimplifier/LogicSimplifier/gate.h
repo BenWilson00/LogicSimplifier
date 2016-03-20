@@ -6,11 +6,11 @@ class LogicGate {
   public:
     enum GType { AND, OR, NOT, NAND, NOR, XOR, XNOR };
 
-	LogicGate * prev;
+	LogicGate * prev[2];
 	LogicGate * next;
 	GType gateType;
 
-	LogicGate(GType, LogicGate *, LogicGate *);
+	LogicGate(GType, LogicGate * [2], LogicGate *);
 
 };
 

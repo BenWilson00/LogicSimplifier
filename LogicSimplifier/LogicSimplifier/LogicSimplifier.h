@@ -6,7 +6,6 @@ typedef std::vector<bool> b_vec;
 b_vec constructMapping(int, int);
 
 void printBinary(int, int);
-
-//void cls();
+void printIOtable(b_vec, int);
 
 #endif

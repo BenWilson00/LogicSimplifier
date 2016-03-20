@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <vector>
+#include <string>
 #include <stdlib.h>
 
 #include "LogicSimplifier.h"
@@ -12,10 +13,32 @@
 
 const int MIN_INPUTS = 2;
 const int MAX_INPUTS = 8;
+std::string INPUT_NAMES = "ABCDEFGH";
+
+void generateSingleOutputs(int nPerms, int nInputs) {
+	std::vector<LogicGate *> inputs(nInputs);
+}
 
 void printBinary(int n, int len) {
 	for (int i = len - 1; i >= 0; i--) {
 		std::cout << ((n >> i) & 1);
+	}
+}
+
+void printIOtable(b_vec ioMap, int len) {
+	for (int i = 0; i < len; i++) {
+		std::cout << INPUT_NAMES[i];
+	}
+	std::cout << " | Q\n";
+
+	for (int i = 0; i < len; i++) {
+		std::cout << "-";
+	}
+	std::cout << "----\n";
+
+	for (int i = 0; i < ioMap.size(); i++) {
+		printBinary(i, len);
+		std::cout << " | " << ioMap[i] << "\n";
 	}
 }
 
@@ -28,16 +51,19 @@ b_vec constructMapping(int nInputs, int nPerms) {
 		printBinary(i, nInputs);
 		std::cout << " = ";
 
-		int userInput;
-		while (true) {
+		bool userInput;
+		std::cin >> userInput;
+
+		while (std::cin.fail()) {
+			std::cout << "Please enter 1 or 0.\n";
+			printBinary(i, nInputs);
+			std::cout << " = ";
+
+			std::cin.clear();
+			std::cin.ignore(256, '\n');
 			std::cin >> userInput;
-			if (userInput != 0 & userInput != 1) {
-				std::cout << "Please enter 1 or 0.\n";
-				printBinary(i, nInputs);
-				std::cout << " = ";
-			}
-			else break;
 		}
+
 		ioMap[i] = userInput;
 	}	
 	return ioMap;
@@ -51,13 +77,14 @@ int main()
 	std::cout << "Please enter how many inputs there are (from " << MIN_INPUTS << " to " << MAX_INPUTS << "): ";
 
 	int nInputs;
+	std::cin >> nInputs;
 
-	while (true) {
+	while (std::cin.fail() || nInputs < MIN_INPUTS || nInputs > MAX_INPUTS) {
+		std::cout << "Please enter a number in the correct range.\n";
+
+		std::cin.clear();
+		std::cin.ignore(256, '\n');
 		std::cin >> nInputs;
-		if (nInputs < MIN_INPUTS || nInputs > MAX_INPUTS) {
-			std::cout << "You entered a number outside of the range.\n";
-		}
-		else break;
 	}
 
 	int nInputPerms = 1 << nInputs;
@@ -66,15 +93,11 @@ int main()
 
 	b_vec ioMap = constructMapping(nInputs, nInputPerms);
 
-
 	system("cls");
+	
+	printIOtable(ioMap, nInputs);
 
-	std::cout << "Input/Output Mapping:\n";
-
-	for (int i = 0; i < ioMap.size(); i++) {
-		printBinary(i, nInputs);
-		std::cout << " : " << ioMap[i] << "\n";
-	}
+	generateSingleOutputs(nInputs, nInputPerms);
 
     return 0;
 }
