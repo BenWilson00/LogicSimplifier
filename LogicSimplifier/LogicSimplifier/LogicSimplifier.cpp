@@ -15,8 +15,29 @@ const int MIN_INPUTS = 2;
 const int MAX_INPUTS = 8;
 std::string INPUT_NAMES = "ABCDEFGH";
 
-void generateSingleOutputs(int nPerms, int nInputs) {
-	std::vector<LogicGate *> inputs(nInputs);
+void generateSingleOutputs(b_vec ioMap, int nInputs) {
+
+	std::vector<HighNode> highOutputs;
+
+	for (int i = 0; i < ioMap.size(); i++) {
+		if (ioMap[i]) {
+			highOutputs.push_back(HighNode(i));
+		}
+	}
+
+	int mask;
+	for (int i = 0; i < highOutputs.size(); i++) {
+		mask = 1 << nInputs;
+
+		bool bInput;
+		for (int j = 1; j <= nInputs; j++) {
+			bInput = mask & highOutputs[i].baseInputStates;
+			//if (bInput == 0) {
+			//}
+
+		}
+		std::cout << highOutputs[i].baseInputStates << "\n";
+	}
 }
 
 void printBinary(int n, int len) {
@@ -97,7 +118,7 @@ int main()
 	
 	printIOtable(ioMap, nInputs);
 
-	generateSingleOutputs(nInputs, nInputPerms);
+	generateSingleOutputs(ioMap, nInputs);
 
     return 0;
 }

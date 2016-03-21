@@ -3,14 +3,25 @@
 
 class LogicGate {
 
-  public:
-    enum GType { AND, OR, NOT, NAND, NOR, XOR, XNOR };
+public:
+	enum GType { AND, OR, NOT, NAND, NOR, XOR, XNOR };
+	LogicGate(GType, LogicGate **, LogicGate *);
 
-	LogicGate * prev[2];
-	LogicGate * next;
+private:
+	LogicGate ** inputs;
+	LogicGate * output;
 	GType gateType;
 
-	LogicGate(GType, LogicGate * [2], LogicGate *);
+};
+
+class HighNode {
+
+	LogicGate * input;
+
+public:
+
+	int baseInputStates;
+	HighNode(int);
 
 };
 
