@@ -4,24 +4,22 @@
 class LogicGate {
 
 public:
+
 	enum GType { AND, OR, NOT, NAND, NOR, XOR, XNOR };
-	LogicGate(GType, LogicGate **, LogicGate *);
+
+	LogicGate(GType);
+
+	void setInputs(LogicGate ** &inputList); 
+	void setInputs(LogicGate * inputa, LogicGate * inputb = NULL);
+	//void setOutput(LogicGate * out);
+	void getInputAddr(std::vector<LogicGate *>  &addresses, int &index);
+	LogicGate ** getInputs();
+
 
 private:
-	LogicGate ** inputs;
-	LogicGate * output;
 	GType gateType;
-
-};
-
-class HighNode {
-
-	LogicGate * input;
-
-public:
-
-	int baseInputStates;
-	HighNode(int);
+	//LogicGate * output;
+	LogicGate * inputs[2] = { NULL };
 
 };
 

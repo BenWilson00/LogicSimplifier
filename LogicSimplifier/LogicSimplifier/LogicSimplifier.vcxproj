@@ -151,6 +151,7 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="friend.cpp" />
     <ClCompile Include="gate.cpp" />
     <ClCompile Include="LogicSimplifier.cpp" />
     <ClCompile Include="stdafx.cpp">

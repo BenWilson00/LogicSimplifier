@@ -41,5 +41,8 @@
     <ClCompile Include="gate.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="friend.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
