@@ -3,6 +3,16 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <algorithm>
+
+// Get the simplified logical expression for an output set, based on 1's or 0's as specified by <lookUp>.
+std::vector< std::vector<char> > getLogic(std::vector<char> outputSet, int nInputs, char lookUp);
+
+// If <item> is in <vec>, return index of <item>, else return -1.
+template<typename T> int get_pos(std::vector<T> vec, T item);
+
+// Print an integer in binary with <len> digits.
+void printBinary(int n, int len);
 
 namespace LogicSimplifierUI {
 
@@ -14,7 +24,9 @@ namespace LogicSimplifierUI {
 	using namespace System::Drawing;
 
 	/// <summary>
-	/// Summary for UIForm
+	/// This GUI allows you to enter a variable number of inputs, check boxes for 
+	/// high outputs or outputs for which you don't care about the state, then
+	/// generates a simplified logical expression for the gates required.
 	/// </summary>
 	public ref class UIForm : public System::Windows::Forms::Form
 	{
@@ -22,7 +34,7 @@ namespace LogicSimplifierUI {
 		UIForm(void)
 		{
 			InitializeComponent();
-			
+
 			this->nInputDropDown->SelectedIndex = 0;
 			
 		}
@@ -42,10 +54,7 @@ namespace LogicSimplifierUI {
 	protected:
 
 
-
-	private: System::Windows::Forms::ToolStrip^  toolStrip1;
-	private: System::Windows::Forms::ToolStripButton^  toolStripButton1;
-	private: System::Windows::Forms::Button^  button1;
+	private: System::Windows::Forms::Button^  confirmButton;
 
 	private: System::Windows::Forms::ComboBox^  nInputDropDown;
 	private: System::ComponentModel::BackgroundWorker^  backgroundWorker1;
@@ -54,8 +63,10 @@ namespace LogicSimplifierUI {
 	private: System::Windows::Forms::Label^  label2;
 	private: System::Windows::Forms::Label^  label3;
 	private: System::Windows::Forms::CheckedListBox^  dontCareCheckedListBox;
+	private: System::Windows::Forms::Label^  outputResultBox;
 
 
+	private: System::Windows::Forms::CheckBox^  sumOrProductCheckBox;
 
 	private:
 		/// <summary>
@@ -70,10 +81,7 @@ namespace LogicSimplifierUI {
 		/// </summary>
 		void InitializeComponent(void)
 		{
-			System::ComponentModel::ComponentResourceManager^  resources = (gcnew System::ComponentModel::ComponentResourceManager(UIForm::typeid));
-			this->button1 = (gcnew System::Windows::Forms::Button());
-			this->toolStrip1 = (gcnew System::Windows::Forms::ToolStrip());
-			this->toolStripButton1 = (gcnew System::Windows::Forms::ToolStripButton());
+			this->confirmButton = (gcnew System::Windows::Forms::Button());
 			this->nInputDropDown = (gcnew System::Windows::Forms::ComboBox());
 			this->backgroundWorker1 = (gcnew System::ComponentModel::BackgroundWorker());
 			this->label1 = (gcnew System::Windows::Forms::Label());
@@ -81,61 +89,42 @@ namespace LogicSimplifierUI {
 			this->label2 = (gcnew System::Windows::Forms::Label());
 			this->label3 = (gcnew System::Windows::Forms::Label());
 			this->dontCareCheckedListBox = (gcnew System::Windows::Forms::CheckedListBox());
-			this->toolStrip1->SuspendLayout();
+			this->outputResultBox = (gcnew System::Windows::Forms::Label());
+			this->sumOrProductCheckBox = (gcnew System::Windows::Forms::CheckBox());
 			this->SuspendLayout();
 			// 
-			// button1
+			// confirmButton
 			// 
-			this->button1->BackColor = System::Drawing::SystemColors::ControlLight;
-			this->button1->Location = System::Drawing::Point(-2, 998);
-			this->button1->Name = L"button1";
-			this->button1->Size = System::Drawing::Size(211, 46);
-			this->button1->TabIndex = 2;
-			this->button1->Text = L"confirm";
-			this->button1->UseVisualStyleBackColor = false;
-			this->button1->Click += gcnew System::EventHandler(this, &UIForm::button1_Click);
-			// 
-			// toolStrip1
-			// 
-			this->toolStrip1->BackColor = System::Drawing::SystemColors::ControlLight;
-			this->toolStrip1->ImageScalingSize = System::Drawing::Size(32, 32);
-			this->toolStrip1->Items->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(1) { this->toolStripButton1 });
-			this->toolStrip1->Location = System::Drawing::Point(0, 0);
-			this->toolStrip1->Name = L"toolStrip1";
-			this->toolStrip1->Size = System::Drawing::Size(974, 39);
-			this->toolStrip1->TabIndex = 4;
-			this->toolStrip1->Text = L"toolStrip1";
-			// 
-			// toolStripButton1
-			// 
-			this->toolStripButton1->DisplayStyle = System::Windows::Forms::ToolStripItemDisplayStyle::Image;
-			this->toolStripButton1->Image = (cli::safe_cast<System::Drawing::Image^>(resources->GetObject(L"toolStripButton1.Image")));
-			this->toolStripButton1->ImageTransparentColor = System::Drawing::Color::Magenta;
-			this->toolStripButton1->Name = L"toolStripButton1";
-			this->toolStripButton1->Size = System::Drawing::Size(36, 36);
-			this->toolStripButton1->Text = L"toolStripButton1";
+			this->confirmButton->BackColor = System::Drawing::SystemColors::ControlLight;
+			this->confirmButton->Location = System::Drawing::Point(0, 970);
+			this->confirmButton->Name = L"confirmButton";
+			this->confirmButton->Size = System::Drawing::Size(318, 75);
+			this->confirmButton->TabIndex = 2;
+			this->confirmButton->Text = L"confirm";
+			this->confirmButton->UseVisualStyleBackColor = false;
+			this->confirmButton->Click += gcnew System::EventHandler(this, &UIForm::confirmButton_Click);
 			// 
 			// nInputDropDown
 			// 
-			this->nInputDropDown->Anchor = static_cast<System::Windows::Forms::AnchorStyles>((System::Windows::Forms::AnchorStyles::Top | System::Windows::Forms::AnchorStyles::Bottom));
+			this->nInputDropDown->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 8));
 			this->nInputDropDown->FormattingEnabled = true;
 			this->nInputDropDown->IntegralHeight = false;
-			this->nInputDropDown->Items->AddRange(gcnew cli::array< System::Object^  >(3) { L"2", L"3", L"4" });
-			this->nInputDropDown->Location = System::Drawing::Point(211, 0);
-			this->nInputDropDown->MaxDropDownItems = 3;
+			this->nInputDropDown->Items->AddRange(gcnew cli::array< System::Object^  >(7) { L"2", L"3", L"4", L"5", L"6", L"7", L"8" });
+			this->nInputDropDown->Location = System::Drawing::Point(215, 4);
+			this->nInputDropDown->Margin = System::Windows::Forms::Padding(0);
+			this->nInputDropDown->MaxDropDownItems = 6;
 			this->nInputDropDown->Name = L"nInputDropDown";
-			this->nInputDropDown->Size = System::Drawing::Size(55, 33);
+			this->nInputDropDown->Size = System::Drawing::Size(90, 33);
 			this->nInputDropDown->TabIndex = 6;
 			this->nInputDropDown->SelectedIndexChanged += gcnew System::EventHandler(this, &UIForm::nInputDropDown_SelectedIndexChanged);
 			// 
 			// label1
 			// 
-			this->label1->AutoSize = true;
-			this->label1->BackColor = System::Drawing::SystemColors::ControlLight;
-			this->label1->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 10));
-			this->label1->Location = System::Drawing::Point(103, 0);
+			this->label1->BackColor = System::Drawing::Color::MintCream;
+			this->label1->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 8));
+			this->label1->Location = System::Drawing::Point(3, 4);
 			this->label1->Name = L"label1";
-			this->label1->Size = System::Drawing::Size(102, 31);
+			this->label1->Size = System::Drawing::Size(206, 38);
 			this->label1->TabIndex = 7;
 			this->label1->Text = L"inputs :";
 			this->label1->TextAlign = System::Drawing::ContentAlignment::MiddleCenter;
@@ -144,9 +133,9 @@ namespace LogicSimplifierUI {
 			// 
 			this->highOutCheckedListBox->FormattingEnabled = true;
 			this->highOutCheckedListBox->Items->AddRange(gcnew cli::array< System::Object^  >(4) { L"00", L"01", L"10", L"11" });
-			this->highOutCheckedListBox->Location = System::Drawing::Point(0, 131);
+			this->highOutCheckedListBox->Location = System::Drawing::Point(0, 103);
 			this->highOutCheckedListBox->Name = L"highOutCheckedListBox";
-			this->highOutCheckedListBox->Size = System::Drawing::Size(137, 888);
+			this->highOutCheckedListBox->Size = System::Drawing::Size(209, 888);
 			this->highOutCheckedListBox->TabIndex = 8;
 			this->highOutCheckedListBox->Click += gcnew System::EventHandler(this, &UIForm::yyy);
 			this->highOutCheckedListBox->SelectedIndexChanged += gcnew System::EventHandler(this, &UIForm::highOutCheckedListBox_UpdateDontCares);
@@ -154,14 +143,14 @@ namespace LogicSimplifierUI {
 			// 
 			// label2
 			// 
-			this->label2->AutoSize = true;
+			this->label2->AllowDrop = true;
 			this->label2->BackColor = System::Drawing::Color::MintCream;
 			this->label2->BorderStyle = System::Windows::Forms::BorderStyle::FixedSingle;
 			this->label2->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 8));
 			this->label2->ImageAlign = System::Drawing::ContentAlignment::MiddleRight;
-			this->label2->Location = System::Drawing::Point(-5, 76);
+			this->label2->Location = System::Drawing::Point(0, 46);
 			this->label2->Name = L"label2";
-			this->label2->Size = System::Drawing::Size(148, 54);
+			this->label2->Size = System::Drawing::Size(209, 54);
 			this->label2->TabIndex = 9;
 			this->label2->Text = L"High Output\r\nCombinations";
 			this->label2->TextAlign = System::Drawing::ContentAlignment::MiddleCenter;
@@ -169,14 +158,13 @@ namespace LogicSimplifierUI {
 			// 
 			// label3
 			// 
-			this->label3->AutoSize = true;
 			this->label3->BackColor = System::Drawing::Color::MintCream;
 			this->label3->BorderStyle = System::Windows::Forms::BorderStyle::FixedSingle;
 			this->label3->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 8));
 			this->label3->ImageAlign = System::Drawing::ContentAlignment::MiddleRight;
-			this->label3->Location = System::Drawing::Point(142, 76);
+			this->label3->Location = System::Drawing::Point(215, 46);
 			this->label3->Name = L"label3";
-			this->label3->Size = System::Drawing::Size(64, 54);
+			this->label3->Size = System::Drawing::Size(94, 54);
 			this->label3->TabIndex = 10;
 			this->label3->Text = L"Don\'t\r\nCare\r\n";
 			this->label3->TextAlign = System::Drawing::ContentAlignment::MiddleCenter;
@@ -186,11 +174,33 @@ namespace LogicSimplifierUI {
 			// 
 			this->dontCareCheckedListBox->FormattingEnabled = true;
 			this->dontCareCheckedListBox->Items->AddRange(gcnew cli::array< System::Object^  >(4) { L"#", L"#", L"#", L"#" });
-			this->dontCareCheckedListBox->Location = System::Drawing::Point(142, 131);
+			this->dontCareCheckedListBox->Location = System::Drawing::Point(215, 103);
 			this->dontCareCheckedListBox->Name = L"dontCareCheckedListBox";
-			this->dontCareCheckedListBox->Size = System::Drawing::Size(64, 888);
+			this->dontCareCheckedListBox->Size = System::Drawing::Size(94, 888);
 			this->dontCareCheckedListBox->TabIndex = 11;
 			this->dontCareCheckedListBox->Click += gcnew System::EventHandler(this, &UIForm::yyy);
+			// 
+			// outputResultBox
+			// 
+			this->outputResultBox->BackColor = System::Drawing::SystemColors::ControlLight;
+			this->outputResultBox->Cursor = System::Windows::Forms::Cursors::No;
+			this->outputResultBox->Location = System::Drawing::Point(338, 46);
+			this->outputResultBox->Name = L"outputResultBox";
+			this->outputResultBox->Size = System::Drawing::Size(624, 107);
+			this->outputResultBox->TabIndex = 12;
+			this->outputResultBox->Text = L"output goes here";
+			// 
+			// sumOrProductCheckBox
+			// 
+			this->sumOrProductCheckBox->BackColor = System::Drawing::Color::MintCream;
+			this->sumOrProductCheckBox->Font = (gcnew System::Drawing::Font(L"Microsoft Sans Serif", 6.5F));
+			this->sumOrProductCheckBox->Location = System::Drawing::Point(325, 978);
+			this->sumOrProductCheckBox->Margin = System::Windows::Forms::Padding(0);
+			this->sumOrProductCheckBox->Name = L"sumOrProductCheckBox";
+			this->sumOrProductCheckBox->Size = System::Drawing::Size(656, 60);
+			this->sumOrProductCheckBox->TabIndex = 15;
+			this->sumOrProductCheckBox->Text = L"Leave unchecked for Sum of Products; check for Product of Sums";
+			this->sumOrProductCheckBox->UseVisualStyleBackColor = false;
 			// 
 			// UIForm
 			// 
@@ -198,21 +208,25 @@ namespace LogicSimplifierUI {
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
 			this->BackColor = System::Drawing::SystemColors::ControlDarkDark;
 			this->ClientSize = System::Drawing::Size(974, 1043);
-			this->Controls->Add(this->button1);
+			this->Controls->Add(this->sumOrProductCheckBox);
+			this->Controls->Add(this->outputResultBox);
+			this->Controls->Add(this->confirmButton);
 			this->Controls->Add(this->dontCareCheckedListBox);
 			this->Controls->Add(this->label3);
 			this->Controls->Add(this->label2);
-			this->Controls->Add(this->label1);
 			this->Controls->Add(this->nInputDropDown);
-			this->Controls->Add(this->toolStrip1);
 			this->Controls->Add(this->highOutCheckedListBox);
+			this->Controls->Add(this->label1);
+			this->FormBorderStyle = System::Windows::Forms::FormBorderStyle::FixedSingle;
+			this->MaximizeBox = false;
+			this->MaximumSize = System::Drawing::Size(1000, 1114);
+			this->MinimizeBox = false;
+			this->MinimumSize = System::Drawing::Size(1000, 1114);
 			this->Name = L"UIForm";
+			this->ShowInTaskbar = false;
+			this->SizeGripStyle = System::Windows::Forms::SizeGripStyle::Hide;
 			this->Text = L"UIForm";
-			this->Load += gcnew System::EventHandler(this, &UIForm::UIForm_Load);
-			this->toolStrip1->ResumeLayout(false);
-			this->toolStrip1->PerformLayout();
 			this->ResumeLayout(false);
-			this->PerformLayout();
 
 		}
 #pragma endregion
@@ -239,12 +253,37 @@ namespace LogicSimplifierUI {
 		return outputSet;
 	}
 
-	private: std::vector<std::vector<char>> get_Kmap() {
-
-	}
-
-	private: System::Void UIForm_Load(System::Object^  sender, System::EventArgs^  e) {
-
+	private: System::Void outputResults(std::vector< std::vector<char> > values, bool sumOfProducts) {
+		std::string alphabet = "ABCDEFGH";
+		std::string str;
+		int first;
+		if (!sumOfProducts) { str += "("; }
+		for (int i = 0; i != values.size(); ++i) {
+			first = std::min(get_pos(values[i], '0'), get_pos(values[i], '1'));
+			if (first == -1) { first = get_pos(values[i], '0'); }
+			if (first == -1) { first = get_pos(values[i], '1'); }
+			for (int j = 0; j != values[i].size(); ++j) {
+				if (values[i][j] == '1') {
+					if (!sumOfProducts && (j != first)) { str += " + "; }
+					str += alphabet[j];
+					
+				}
+				else if (values[i][j] == '0') {
+					if (!sumOfProducts && (j != first)) { str += " + "; }
+					str += alphabet[j];
+					str += '\'';
+					
+				}
+				
+			}
+			if (i != values.size() - 1) {
+				if (sumOfProducts) { str += " + "; }
+				else { str += ")("; }
+			}
+		}
+		if (!sumOfProducts) { str += ")"; }
+		System::String^ converted = gcnew String(str.c_str());
+		this->outputResultBox->Text = converted;
 	}
 
 	private: System::Void nInputDropDown_SelectedIndexChanged(System::Object^  sender, System::EventArgs^  e) {
@@ -265,15 +304,22 @@ namespace LogicSimplifierUI {
 			this->dontCareCheckedListBox->Items->Add( L"#" );
 			str = "";
 		}
+
 	}
 
-	private: System::Void button1_Click(System::Object^  sender, System::EventArgs^  e) {
+	private: System::Void confirmButton_Click(System::Object^  sender, System::EventArgs^  e) {
 
 		std::vector<char> outputSet = get_outputSet();
 
 		for (int i = 0; i < outputSet.size(); ++i) {
-			std::cout << outputSet[i] << std::endl;
+			//std::cout << outputSet[i] << std::endl;
 		}
+
+		std::vector< std::vector<char> > sumOfProducts = getLogic(outputSet, get_nInputs(), '1');
+		std::vector< std::vector<char> > productOfSums = getLogic(outputSet, get_nInputs(), '0');
+	
+		if (this->sumOrProductCheckBox->Checked) { outputResults(productOfSums, false); }
+		else { outputResults(sumOfProducts, true); }
 	}
 
 	private: System::Void highOutCheckedListBox_UpdateDontCares(System::Object^  sender, System::EventArgs^  e) {
@@ -295,10 +341,10 @@ namespace LogicSimplifierUI {
 			}
 		
 		}
-
 	}
 
 private: System::Void yyy(System::Object^  sender, System::EventArgs^  e) {
 }
 };
 }
+
