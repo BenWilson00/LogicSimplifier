@@ -31,7 +31,7 @@ std::vector< std::vector<char> > getLogic(std::vector<char> outputSet, int nInpu
 		std::vector<int> checkAgainst(1, pos);
 
 		//see if there is an output change under different input
-		//changes, and store groups of invariables
+		//changes, and store groups of invariants
 		for (int mask = (1 << (nInputs - 1)); mask >= 1; mask >>= 1) {
 
 			bool change = false;
